@@ -19,6 +19,7 @@ class BookDownloader:
         self.dest_dir_url = dest_dir_url
 
     def start(self):
+        self.delete_tmp_downloads()
         href_links = BookDownloader.get_all_book_links()
         self.crawl_sub_pages(href_links)
 
@@ -49,11 +50,10 @@ class BookDownloader:
             file_name = BookDownloader.get_download_file_name(response)
             src_url = sub_link + file_name
             destination_url = self.dest_dir_url + file_name
-            self.prepare_and_download(destination_url, src_url)
+            self.check_and_download(destination_url, src_url)
 
-    def prepare_and_download(self, destination_url, src_url):
+    def check_and_download(self, destination_url, src_url):
         print("Downloading " + src_url + " to: " + destination_url)
-        self.delete_tmp_downloads()
         if self.is_downloaded(destination_url):
             print("File already downloaded!")
             return
