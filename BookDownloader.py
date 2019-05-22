@@ -52,9 +52,9 @@ class BookDownloader:
 
     def __crawl_to_sub_page(self, sub_link):
         try:
-            self.crawl_sub_page(sub_link)
+            self.__crawl_sub_page(sub_link)
         except Exception as exp:
-            print('Error navigating to link : ', sub_link, ': ', exp)
+            print('Error navigating to link: {0} : {1}'.format(sub_link, exp))
 
     def __crawl_sub_page(self, sub_link):
         response = requests.get(sub_link)
@@ -66,7 +66,7 @@ class BookDownloader:
             self.__check_and_download(src_url, destination_url)
 
     def __check_and_download(self, src_url, destination_url):
-        print("Downloading " + src_url + " to: " + destination_url)
+        print("Downloading {0} to {1}".format(src_url, destination_url))
         if self.is_downloaded(destination_url):
             print("File already downloaded!")
             return
@@ -97,7 +97,7 @@ class BookDownloader:
         try:
             os.remove(path)
         except OSError as e:
-            print("Error while deleting file : ", path + " : " + e)
+            print("Error while deleting file: {0} : {1}".format(path, e))
 
 
 start = time.time()
