@@ -1,3 +1,14 @@
+"""
+https://goalkicker.com/ book downloader
+Idea: Coworker send me a link to a web-page with many tech books. To download
+one I had to open each sub-page separately and click 'Download' button.
+Solution: Automate this with a simple web-crawler and learn some Python along
+the way.
+Algorithm: Crawler goes to main page aggregates links to sub-pages then visits
+every one and click a Download button there. There is a checker to not download
+books multiple times. Also deletes tmp download files.
+"""
+
 import glob
 import wget
 import requests
