@@ -34,12 +34,6 @@ class BookDownloader:
         href_links = BookDownloader.get_all_book_links()
         self.__crawl_sub_pages(href_links)
 
-    def __crawl_sub_pages(self, href_links):
-        for link in href_links:
-            # TODO: Low level operation: abstract it
-            sub_page_link = BookDownloader.WEB_SITE_ADDRESS + link
-            self.__crawl_to_sub_page(sub_page_link)
-
     @staticmethod
     def get_all_book_links():
         """
@@ -49,6 +43,12 @@ class BookDownloader:
         selector = Selector(response.text)
         href_links = selector.xpath('//a/@href').getall()
         return href_links
+
+    def __crawl_sub_pages(self, href_links):
+        for link in href_links:
+            # TODO: Low level operation: abstract it
+            sub_page_link = BookDownloader.WEB_SITE_ADDRESS + link
+            self.__crawl_to_sub_page(sub_page_link)
 
     def __crawl_to_sub_page(self, sub_link):
         try:
@@ -65,6 +65,13 @@ class BookDownloader:
             destination_url = self.dest_dir_url + file_name
             self.__check_and_download(src_url, destination_url)
 
+    @staticmethod
+    def get_download_file_name(response):
+        selector = Selector(response.text)
+        file_name = selector.xpath('//*[@id="footer"]/button/@onclick').get()
+        file_name = file_name.replace('location.href=', "").replace("\'", "")
+        return file_name
+
     def __check_and_download(self, src_url, destination_url):
         print("Downloading {0} to {1}".format(src_url, destination_url))
         if self.is_downloaded(destination_url):
@@ -79,13 +86,6 @@ class BookDownloader:
     @staticmethod
     def download(src_url, destination_url):
         wget.download(src_url, destination_url)
-
-    @staticmethod
-    def get_download_file_name(response):
-        selector = Selector(response.text)
-        file_name = selector.xpath('//*[@id="footer"]/button/@onclick').get()
-        file_name = file_name.replace('location.href=', "").replace("\'", "")
-        return file_name
 
     def delete_tmp_downloads(self):
         tmp_file_list = glob.glob(self.dest_dir_url + '*.tmp')
