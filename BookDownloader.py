@@ -49,7 +49,7 @@ class BookDownloader:
 
     def __crawl_sub_pages(self, href_links):
         for link in href_links:
-            # TODO: Low level operation: abstract it
+            # FIXME: Low level operation: abstract it
             sub_page_link = BookDownloader.WEB_SITE_ADDRESS + link
             self.__crawl_to_sub_page(sub_page_link)
 
@@ -63,7 +63,7 @@ class BookDownloader:
         response = requests.get(sub_link)
         if 200 == response.status_code:
             file_name = BookDownloader.get_download_file_name(response)
-            # TODO: Low level operations: abstract them
+            # FIXME: Low level operations: abstract them
             src_url = sub_link + file_name
             destination_url = self.dest_dir_url + file_name
             self.__check_and_download(src_url, destination_url)
