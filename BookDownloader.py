@@ -14,17 +14,16 @@ every one and click a Download button there. There is a checker to not download
 books multiple times. Also deletes tmp download files.
 """
 
+import time
+import os
 import glob
 import wget
 import requests
-import time
-import os
-import sys
 from parsel import Selector
 
 LOCAL_DESTINATION_PATH = 'CodeBooks/'
 
-class BookDownloader:
+class Book_Downloader:
     """
     Crawling and downloading books from links.
     Goes to main page then opena a link to books page then clicks download button
@@ -67,7 +66,7 @@ class BookDownloader:
         try:
             self.__crawl_sub_page(sub_link)
         except Exception as exp:
-            print('Error navigating to link: {0} : {1}'.format(sub_link, exp))
+            print'Error navigating to link: {0} : {1}'.format(sub_link, exp)
 
     def __crawl_sub_page(self, sub_link):
         response = requests.get(sub_link)
@@ -85,13 +84,13 @@ class BookDownloader:
         return file_name
 
     def __check_and_download(self, src_url, destination_url):
-        print("Downloading {0} to {1}".format(src_url, destination_url))
+        print "Downloading {0} to {1}".format(src_url, destination_url)
         if self.__is_downloaded(destination_url):
-            print("File already downloaded!")
+            print "File already downloaded!"
             return
         self.__download(src_url, destination_url)
 
-    def __is_downloaded(slef, destination_url) -> bool:
+    def __is_downloaded(self, destination_url):
         return os.path.isfile(destination_url)
 
     def __download(self, src_url, destination_url):
@@ -106,7 +105,7 @@ class BookDownloader:
         try:
             os.remove(path)
         except OSError as e:
-            print("Error while deleting file: {0} : {1}".format(path, e))
+            print "Error while deleting file: {0} : {1}".format(path, e)
 
 
 
