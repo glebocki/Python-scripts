@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 https://goalkicker.com/ Book Downloader
 
@@ -17,10 +19,10 @@ import wget
 import requests
 import time
 import os
+import sys
 from parsel import Selector
 
-LOCAL_DESTINATION_PATH = 'C:\\Users\\glebo\\OneDrive\\Dokumenty\\CodeBooks\\'
-
+LOCAL_DESTINATION_PATH = 'CodeBooks/'
 
 class BookDownloader:
     """
@@ -29,16 +31,24 @@ class BookDownloader:
     """
     WEB_SITE_ADDRESS = 'https://goalkicker.com/'
 
-    def __init__(self, dest_dir_url):
-        self.dest_dir_url = dest_dir_url
+    def __init__(self, dst_dir_url):
+        self.dst_dir_url = dst_dir_url
 
     def start(self):
-        self.delete_tmp_downloads()
-        href_links = BookDownloader.get_all_book_links()
+        self.__before_download()
+        self.__download_books()
+
+    def __before_download(self):
+        if not os.path.exists(LOCAL_DESTINATION_PATH):
+            os.makedirs(LOCAL_DESTINATION_PATH)
+        else:
+            self.__delete_tmp_downloads()
+
+    def __download_books(self):
+        href_links = self.__get_all_books_links()
         self.__crawl_sub_pages(href_links)
 
-    @staticmethod
-    def get_all_book_links():
+    def __get_all_books_links(self):
         """
         Gets all links from main page to subpages with books
         """
@@ -62,14 +72,13 @@ class BookDownloader:
     def __crawl_sub_page(self, sub_link):
         response = requests.get(sub_link)
         if 200 == response.status_code:
-            file_name = BookDownloader.get_download_file_name(response)
+            file_name = self.__get_download_file_name(response)
             # FIXME: Low level operations: abstract them
             src_url = sub_link + file_name
-            destination_url = self.dest_dir_url + file_name
+            destination_url = self.dst_dir_url + file_name
             self.__check_and_download(src_url, destination_url)
 
-    @staticmethod
-    def get_download_file_name(response):
+    def __get_download_file_name(self, response):
         selector = Selector(response.text)
         file_name = selector.xpath('//*[@id="footer"]/button/@onclick').get()
         file_name = file_name.replace('location.href=', "").replace("\'", "")
@@ -77,36 +86,36 @@ class BookDownloader:
 
     def __check_and_download(self, src_url, destination_url):
         print("Downloading {0} to {1}".format(src_url, destination_url))
-        if self.is_downloaded(destination_url):
+        if self.__is_downloaded(destination_url):
             print("File already downloaded!")
             return
-        self.download(src_url, destination_url)
+        self.__download(src_url, destination_url)
 
-    @staticmethod
-    def is_downloaded(destination_url) -> bool:
+    def __is_downloaded(slef, destination_url) -> bool:
         return os.path.isfile(destination_url)
 
-    @staticmethod
-    def download(src_url, destination_url):
+    def __download(self, src_url, destination_url):
         wget.download(src_url, destination_url)
 
-    def delete_tmp_downloads(self):
-        tmp_file_list = glob.glob(self.dest_dir_url + '*.tmp')
+    def __delete_tmp_downloads(self):
+        tmp_file_list = glob.glob(self.dst_dir_url + '*.tmp')
         for path in tmp_file_list:
-            BookDownloader.delete_tmp_download(path)
+            self.__delete_tmp_download(path)
 
-    @staticmethod
-    def delete_tmp_download(path):
+    def __delete_tmp_download(self, path):
         try:
             os.remove(path)
         except OSError as e:
             print("Error while deleting file: {0} : {1}".format(path, e))
 
 
-start = time.time()
 
 downloader = BookDownloader(LOCAL_DESTINATION_PATH)
+
+start = time.time()
+
 downloader.start()
 
 end = time.time()
 print("Time taken in seconds : ", (end - start))
+
