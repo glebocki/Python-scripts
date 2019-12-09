@@ -23,6 +23,7 @@ import wget
 import requests
 from parsel import Selector
 
+
 class BookDownloader(object):
     """
     Crawling and downloading books from links.
@@ -47,6 +48,20 @@ class BookDownloader(object):
         else:
             self.delete_tmp_downloads()
 
+    def delete_tmp_downloads(self):
+        """Deletes */tmp files from local destination folder
+        """
+        tmp_file_list = glob.glob(self.dst_dir_url + '*.tmp')
+        for path in tmp_file_list:
+            self.__delete_tmp_download(path)
+
+    @staticmethod
+    def __delete_tmp_download(path):
+        try:
+            os.remove(path)
+        except OSError as os_error:
+            print("Error while deleting file: {0} : {1}".format(path, os_error))
+
     def __download_books(self):
         href_links = self.__get_all_books_links()
         self.__crawl_sub_pages(href_links)
@@ -62,9 +77,11 @@ class BookDownloader(object):
 
     def __crawl_sub_pages(self, href_links):
         for link in href_links:
-            # FIXME: Low level operation: abstract it
-            sub_page_link = BookDownloader.WEB_SITE_ADDRESS + link
-            self.__crawl_to_sub_page(sub_page_link)
+            self.__crawl_to_sub_page(self.__sub_page_link(link))
+
+    @staticmethod
+    def __sub_page_link(link):
+        return BookDownloader.WEB_SITE_ADDRESS + link
 
     def __crawl_to_sub_page(self, sub_link):
         try:
@@ -76,12 +93,20 @@ class BookDownloader(object):
         response = requests.get(sub_link)
         if response.status_code == 200:
             file_name = self.__get_download_file_name(response)
-            # FIXME: Low level operations: abstract them
-            src_url = sub_link + file_name
-            destination_url = self.dst_dir_url + file_name
-            self.__check_and_download(src_url, destination_url)
+            self.__check_and_download(
+                self.__src_url(sub_link, file_name),
+                self.__dst_url(file_name)
+            )
 
-    def __get_download_file_name(self, response):
+    @staticmethod
+    def __src_url(sub_link, file_name):
+        return sub_link + file_name
+
+    def __dst_url(self, file_name):
+        return self.dst_dir_url + file_name
+
+    @staticmethod
+    def __get_download_file_name(response):
         selector = Selector(response.text)
         file_name = selector.xpath('//*[@id="footer"]/button/@onclick').get()
         file_name = file_name.replace('location.href=', "").replace("\'", "")
@@ -94,24 +119,14 @@ class BookDownloader(object):
             return
         self.__download(src_url, destination_url)
 
-    def __is_downloaded(self, destination_url):
+    @staticmethod
+    def __is_downloaded(destination_url):
         return os.path.isfile(destination_url)
 
-    def __download(self, src_url, destination_url):
+    @staticmethod
+    def __download(src_url, destination_url):
         wget.download(src_url, destination_url)
 
-    def delete_tmp_downloads(self):
-        """Deletes */tmp files from local destination folder
-        """
-        tmp_file_list = glob.glob(self.dst_dir_url + '*.tmp')
-        for path in tmp_file_list:
-            self.__delete_tmp_download(path)
-
-    def __delete_tmp_download(self, path):
-        try:
-            os.remove(path)
-        except OSError as os_error:
-            print("Error while deleting file: {0} : {1}".format(path, os_error))
 
 def main():
     """Main entry point
@@ -121,5 +136,6 @@ def main():
     downloader.start()
     end = time.time()
     print("Time taken in seconds : ", (end - start))
+
 
 main()
